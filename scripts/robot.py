@@ -31,6 +31,7 @@ class RobotController():
             self.update_from_text(text)
 
             move = self.motions.pop()
+            print "Making move: ", move
             self.send_move_command(move)
             self.update_from_move(move)
 
