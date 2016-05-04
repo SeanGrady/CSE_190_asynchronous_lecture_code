@@ -24,18 +24,19 @@
         [0,-1],
         [0,0],
         [1,0]
-    ],  
+    ],
     "possible_moves": [
         [0,0],
         [0,1],
         [0,-1],
         [1,0],
         [-1,0]
-    ], 
+    ],
     "starting_pos": [3,3],
     "temp_noise_std_dev": 10,
     "prob_tex_correct": 0.99,
     "uncertain_motion": true,
     "prob_move_correct": 0.75,
-    "seed": 0
+    "seed": 0,
+    "rate": 0.5
 }

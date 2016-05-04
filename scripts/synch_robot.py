@@ -4,11 +4,8 @@ import rospy
 import random as r
 import math as m
 import numpy as np
-import utils
 from copy import deepcopy
 from cse_190_assi_1.srv import requestTexture, moveService, requestTemperature
-from cse_190_assi_1.msg import Move
-from std_msgs.msg import Float32, String
 from read_config import read_config
 
 class RobotController():
@@ -18,40 +15,38 @@ class RobotController():
         self.init_ros_things()
         self.initialize_maps()
         self.initialize_beliefs()
-        rospy.spin()
+        self.motions = self.config['move_list'][::-1]
+        self.rate = rospy.Rate(.5)
+        self.simulate()
+
+    def simulate(self):
+        while not rospy.is_shutdown() and len(self.motions) > 0:
+            temp = self.get_temperature()
+            self.update_from_temp(temp)
+
+            text = self.get_texture()
+            self.update_from_text(text)
+
+            move = self.motions.pop()
+            self.send_move_command(move)
+            self.update_from_move(move)
+
+            self.show()
+            self.rate.sleep()
 
     def init_ros_things(self):
-        self.move_sub = rospy.Subscriber(
-                "/map_server/move",
-                Move,
-                self.handle_incoming_move
+        self.temperature_requester = rospy.ServiceProxy(
+                "requestTemperature",
+                requestTemperature
         )
-        self.temp_sub = rospy.Subscriber(
-                "/temp_sensor/data",
-                Float32,
-                self.handle_incoming_temp
+        self.texture_requester = rospy.ServiceProxy(
+                "requestTexture",
+                requestTexture
         )
-        self.text_sub = rospy.Subscriber(
-                "/text_sensor/data",
-                String,
-                self.handle_incoming_text
+        self.move_requester = rospy.ServiceProxy(
+                "moveService",
+                moveService,
         )
-
-    def handle_incoming_temp(self, message):
-        temp = message.data
-        print "Incoming Temperature: ", temp
-        self.update_from_temp(temp)
-
-    def handle_incoming_text(self, message):
-        text = message.data
-        print "Incoming texture: ", text
-        self.update_from_text(text)
-
-    def handle_incoming_move(self, message):
-        move = list(message.move)
-        print "Incoming move: ", move
-        self.update_from_move(move)
-        utils.print_2d_floats(self.probability_matrix)
 
     def initialize_maps(self):
         self.heat_map = self.generate_heatmap(self.config['pipe_map'])
@@ -185,6 +180,11 @@ class RobotController():
         else:
             temp_probs = [[prob/total_prob for prob in row] for row in temp_probs]
         self.probability_matrix = temp_probs
+
+    def show(self):
+        p = self.probability_matrix
+        rows = ['[' + ','.join(map(lambda x: '{0:.5f}'.format(x),r)) + ']' for r in p]
+        print '[' + ',\n '.join(rows) + ']'
 
 if __name__ == '__main__':
     rc = RobotController()
