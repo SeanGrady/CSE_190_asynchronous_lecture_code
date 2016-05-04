@@ -1,0 +1,5 @@
+*.swp
+*.~lock*
+*TODO*
+*.txt
+*.pyc
