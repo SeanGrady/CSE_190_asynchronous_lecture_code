@@ -37,6 +37,7 @@ class RobotController():
 
             utils.print_2d_floats(self.probability_matrix)
             self.rate.sleep()
+        print "Out of moves, shutting down"
 
     def init_ros_things(self):
         self.temperature_requester = rospy.ServiceProxy(
